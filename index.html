@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Snake ZQSD</title>
+<style>
+  body {
+    text-align: center;
+    font-family: Arial;
+    background: #111;
+    color: white;
+  }
+
+  canvas {
+    background: black;
+    display: block;
+    margin: 20px auto;
+    border: 2px solid lime;
+  }
+
+  #score {
+    font-size: 20px;
+  }
+
+  .controls {
+    margin-top: 10px;
+  }
+
+  button {
+    font-size: 20px;
+    margin: 5px;
+    padding: 10px 15px;
+  }
+</style>
+</head>
+<body>
+
+<h1>🐍 Snake ZQSD</h1>
+<div id="score">Score : 0</div>
+<canvas id="game" width="400" height="400"></canvas>
+
+<!-- Contrôles mobile -->
+<div class="controls">
+  <div>
+    <button onclick="setDir('UP')">⬆️</button>
+  </div>
+  <div>
+    <button onclick="setDir('LEFT')">⬅️</button>
+    <button onclick="setDir('DOWN')">⬇️</button>
+    <button onclick="setDir('RIGHT')">➡️</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const scoreDisplay = document.getElementById("score");
+
+const box = 20;
+
+let snake = [{ x: 9 * box, y: 9 * box }];
+let direction = null;
+let score = 0;
+let speed = 120;
+let game = null;
+
+let food = randomFood();
+
+function randomFood() {
+  return {
+    x: Math.floor(Math.random() * 20) * box,
+    y: Math.floor(Math.random() * 20) * box
+  };
+}
+
+// 🎮 clavier ZQSD
+document.addEventListener("keydown", (e) => {
+  if (e.key === "z") setDir("UP");
+  else if (e.key === "s") setDir("DOWN");
+  else if (e.key === "q") setDir("LEFT");
+  else if (e.key === "d") setDir("RIGHT");
+});
+
+function setDir(newDir) {
+  if (newDir === "UP" && direction !== "DOWN") direction = "UP";
+  if (newDir === "DOWN" && direction !== "UP") direction = "DOWN";
+  if (newDir === "LEFT" && direction !== "RIGHT") direction = "LEFT";
+  if (newDir === "RIGHT" && direction !== "LEFT") direction = "RIGHT";
+
+  // lancer le jeu au premier mouvement
+  if (!game) {
+    game = setInterval(draw, speed);
+  }
+}
+
+function draw() {
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, 400, 400);
+
+  // serpent
+  snake.forEach((segment, i) => {
+    ctx.fillStyle = i === 0 ? "lime" : "green";
+    ctx.fillRect(segment.x, segment.y, box, box);
+  });
+
+  // nourriture
+  ctx.fillStyle = "red";
+  ctx.fillRect(food.x, food.y, box, box);
+
+  let headX = snake[0].x;
+  let headY = snake[0].y;
+
+  if (!direction) return;
+
+  if (direction === "UP") headY -= box;
+  if (direction === "DOWN") headY += box;
+  if (direction === "LEFT") headX -= box;
+  if (direction === "RIGHT") headX += box;
+
+  // collision
+  if (
+    headX < 0 || headY < 0 ||
+    headX >= canvas.width || headY >= canvas.height ||
+    snake.some(seg => seg.x === headX && seg.y === headY)
+  ) {
+    clearInterval(game);
+    alert("💀 Game Over ! Score : " + score);
+    location.reload();
+    return;
+  }
+
+  // manger
+  if (headX === food.x && headY === food.y) {
+    score++;
+    scoreDisplay.textContent = "Score : " + score;
+    food = randomFood();
+
+    // ⚡ accélération
+    clearInterval(game);
+    speed *= 0.95; // augmente vitesse
+    game = setInterval(draw, speed);
+
+  } else {
+    snake.pop();
+  }
+
+  snake.unshift({ x: headX, y: headY });
+}
+</script>
+
+</body>
+</html>
